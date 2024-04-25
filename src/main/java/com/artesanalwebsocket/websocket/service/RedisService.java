@@ -15,6 +15,11 @@ public class RedisService {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    public RedisService(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
+
     @Async
     public void createBook(String book) {
         bookRepository.save(new Book(book));

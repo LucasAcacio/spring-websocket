@@ -15,6 +15,12 @@ public class MySessionHandler implements WebSocketHandler {
 
     @Autowired
     private RedisService redisService;
+
+    public MySessionHandler(RedisService redisService) {
+        this.redisService = redisService;
+    }
+
+
     Logger logger = LoggerFactory.getLogger(MySessionHandler.class);
 
     /**
@@ -39,8 +45,7 @@ public class MySessionHandler implements WebSocketHandler {
      *                   Javadoc for details.
      */
     @Override
-    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
-//        this.messages.add(message.getPayload().toString());
+    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
         redisService.createBook(message.getPayload().toString());
     }
 

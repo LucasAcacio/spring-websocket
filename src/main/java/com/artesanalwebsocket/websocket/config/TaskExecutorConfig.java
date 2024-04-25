@@ -13,10 +13,15 @@ public class TaskExecutorConfig {
     @Bean(name="taskExecutor")
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setMaxPoolSize(4);
+        taskExecutor.setCorePoolSize(2);
+        taskExecutor.setMaxPoolSize(200);
+        taskExecutor.setPrestartAllCoreThreads(true);
         taskExecutor.setKeepAliveSeconds(60);
-        taskExecutor.setQueueCapacity(1000);
+        taskExecutor.setQueueCapacity(1000000);
         taskExecutor.setAllowCoreThreadTimeOut(true);
         return taskExecutor;
     }
 }
+
+//300000/s
+//30000msg/s

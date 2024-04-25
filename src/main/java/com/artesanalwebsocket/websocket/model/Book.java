@@ -8,20 +8,16 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
 
-import java.io.Serializable;
-import java.util.List;
-
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
 @RedisHash
-public class Book implements Serializable {
+public class Book {
 
     private String ev;
     private String feed;
     @Id
-    @Indexed
     private String symb;
     private Double bid_px;
     private Integer bid_qty;
@@ -34,17 +30,19 @@ public class Book implements Serializable {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             BookJson bookJson = objectMapper.readValue(json, BookJson.class);
-            Book book = Book.builder()
-                    .symb(bookJson.getSymb())
-                    .ev(bookJson.getEv())
-                    .feed(bookJson.getFeed())
-                    .bid_qty((!bookJson.getBidEntries().isEmpty()) ? bookJson.getBidEntries().get(0).getQty() : null)
-                    .bid_px((!bookJson.getBidEntries().isEmpty()) ? bookJson.getBidEntries().get(0).getPx() : null)
-                    .bid_datetime((!bookJson.getBidEntries().isEmpty()) ? bookJson.getBidEntries().get(0).getDatetime() : null)
-                    .offer_qty((!bookJson.getOfferEntries().isEmpty()) ? bookJson.getOfferEntries().get(0).getQty() : null)
-                    .offer_px((!bookJson.getOfferEntries().isEmpty()) ? bookJson.getOfferEntries().get(0).getPx() : null)
-                    .offer_datetime((!bookJson.getOfferEntries().isEmpty()) ? bookJson.getOfferEntries().get(0).getDatetime() : null)
-                    .build();
+            this.symb = bookJson.getSymb();
+            this.ev = bookJson.getEv();
+            this.feed = bookJson.getFeed();
+            if (!bookJson.getBidEntries().isEmpty()) {
+                this.bid_qty = bookJson.getBidEntries().get(0).getQty();
+                this.bid_px = bookJson.getBidEntries().get(0).getPx();
+                this.bid_datetime = bookJson.getBidEntries().get(0).getDatetime();
+            }
+            if (!bookJson.getOfferEntries().isEmpty()) {
+                this.offer_qty = bookJson.getOfferEntries().get(0).getQty();
+                this.offer_px = bookJson.getOfferEntries().get(0).getPx();
+                this.offer_datetime = bookJson.getOfferEntries().get(0).getDatetime();
+            }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
