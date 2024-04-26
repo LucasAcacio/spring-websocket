@@ -10,11 +10,17 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
 public class MySessionHandler implements WebSocketHandler {
 
     @Autowired
     private RedisService redisService;
+
+    private List<String> messageBuffer = new ArrayList<>();
+    private static final int BATCH_SIZE = 100000;
 
     public MySessionHandler(RedisService redisService) {
         this.redisService = redisService;
@@ -44,9 +50,19 @@ public class MySessionHandler implements WebSocketHandler {
      * @throws Exception this method can handle or propagate exceptions; see class-level
      *                   Javadoc for details.
      */
+
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
-        redisService.createBook(message.getPayload().toString());
+        String payload = message.getPayload().toString();
+        messageBuffer.add(payload);
+        if (messageBuffer.size() >= BATCH_SIZE) {
+            processBatch();
+        }
+    }
+
+    private void processBatch() {
+        redisService.createBooks(new ArrayList<>(messageBuffer));
+        messageBuffer.clear();
     }
 
     /**
