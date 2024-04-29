@@ -1,19 +1,19 @@
 package com.artesanalwebsocket.websocket.model;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
-import org.springframework.data.redis.core.index.Indexed;
+
+import java.io.Serializable;
 
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
 @RedisHash
-public class Book {
+public class Book implements Serializable {
 
     private String ev;
     private String feed;

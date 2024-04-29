@@ -1,20 +1,15 @@
 package com.artesanalwebsocket.websocket.service;
 
 import com.artesanalwebsocket.websocket.model.Book;
-import com.artesanalwebsocket.websocket.repository.BookRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class RedisService {
@@ -22,38 +17,35 @@ public class RedisService {
     private Logger logger = LoggerFactory.getLogger(RedisService.class);
 
     @Autowired
-    private BookRepository bookRepository;
-
-    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private static final String BOOKS_KEY = "books";
-
     @Autowired
-    public RedisService(BookRepository bookRepository, RedisTemplate<String, Object> redisTemplate) {
-        this.bookRepository = bookRepository;
+    public RedisService(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
-    @Async
-    public void createBook(String book) {
-        bookRepository.save(new Book(book));
-    }
 
     @Async
-    public void createBooks(List<String> bookList) {
+    public void createBooks(List<Book> bookList) {
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            for (String book : bookList) {
-                connection.rPush(BOOKS_KEY.getBytes(), book.getBytes());
+            long startTime = System.currentTimeMillis();
+            for (Book book : bookList) {
+
+                connection.hashCommands().hSet(book.getSymb().getBytes(), "ev".getBytes(), book.getEv().getBytes());
+                connection.hashCommands().hSet(book.getSymb().getBytes(), "feed".getBytes(), book.getFeed().getBytes());
+                connection.hashCommands().hSet(book.getSymb().getBytes(), "symb".getBytes(), book.getSymb().getBytes());
+                connection.hashCommands().hSet(book.getSymb().getBytes(), "bid_px".getBytes(), (book.getBid_px() != null) ? book.getBid_px().toString().getBytes() : "".getBytes());
+                connection.hashCommands().hSet(book.getSymb().getBytes(), "bid_qty".getBytes(), (book.getBid_qty() != null) ? book.getBid_qty().toString().getBytes() : "".getBytes());
+                connection.hashCommands().hSet(book.getSymb().getBytes(), "bit_datetime".getBytes(), (book.getBid_datetime() != null) ? book.getBid_datetime().getBytes() : "".getBytes());
+                connection.hashCommands().hSet(book.getSymb().getBytes(), "offer_px".getBytes(), (book.getOffer_px() != null) ? book.getOffer_px().toString().getBytes() : "".getBytes());
+                connection.hashCommands().hSet(book.getSymb().getBytes(), "offer_qty".getBytes(), (book.getOffer_qty() != null) ? book.getOffer_qty().toString().getBytes() : "".getBytes());
+                connection.hashCommands().hSet(book.getSymb().getBytes(), "offer_datetime".getBytes(), (book.getOffer_datetime() != null) ? book.getOffer_datetime().getBytes() : "".getBytes());
             }
-            logger.info("Created " + bookList.size() + " books");
+            long endTime = System.currentTimeMillis();
+
+            long totalTime = endTime - startTime;
+            logger.info("Created " + bookList.size() + " books in " + totalTime + " ms");
             return null;
         });
-    }
-
-    public void bulkInsert(List<String> books) {
-        bookRepository.saveAll(books.stream()
-                .map(Book::new)
-                .collect(Collectors.toSet()));
     }
 }

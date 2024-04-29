@@ -9,9 +9,11 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
+import com.artesanalwebsocket.websocket.model.Book;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class MySessionHandler implements WebSocketHandler {
@@ -20,12 +22,11 @@ public class MySessionHandler implements WebSocketHandler {
     private RedisService redisService;
 
     private List<String> messageBuffer = new ArrayList<>();
-    private static final int BATCH_SIZE = 100000;
+    private static final int BATCH_SIZE = 1000;
 
     public MySessionHandler(RedisService redisService) {
         this.redisService = redisService;
     }
-
 
     Logger logger = LoggerFactory.getLogger(MySessionHandler.class);
 
@@ -61,7 +62,7 @@ public class MySessionHandler implements WebSocketHandler {
     }
 
     private void processBatch() {
-        redisService.createBooks(new ArrayList<>(messageBuffer));
+        redisService.createBooks(new ArrayList<>(messageBuffer.stream().map(Book::new).collect(Collectors.toList())));
         messageBuffer.clear();
     }
 
